@@ -28,8 +28,8 @@ pipeline {
 			}
 			steps {
 				withSonarQubeEnv('Test_Sonar') {
-					echo "dotnet ${scannerHome}/SonarScanner.MSBuild.dll begin /k:${project} /n:{project} /v:1.0"
-					bat "dotnet ${scannerHome}/SonarScanner.MSBuild.dll begin /k:{project} /n:{project} /v:1.0"
+					echo "dotnet ${scannerHome}/SonarScanner.MSBuild.dll begin /k:${project} /n:${project} /v:1.0"
+					bat "dotnet ${scannerHome}/SonarScanner.MSBuild.dll begin /k:${project} /n:${project} /v:1.0"
 				}
 			}
 		}
