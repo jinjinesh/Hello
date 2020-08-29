@@ -69,6 +69,7 @@ pipeline {
 					steps {
 						powershell label: '', script: '''$cID = $(docker ps -qf "name=c_jineshjain_${env.branch_name}")
 						if($cID){
+							echo $cID
 							docker container stop $cID;
 							docker rm $cID;
 						}'''
