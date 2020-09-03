@@ -1,0 +1,12 @@
+# Default values for helm-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+name: web-app
+namespace: default
+image: jinjinesh/i_jineshjain_develop:18
+serviceType: NodePort
+nodePort: 30158
+containerName: c-web-app
+
