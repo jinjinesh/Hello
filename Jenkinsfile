@@ -2,8 +2,10 @@ pipeline {
 	agent any
 	environment {
 		scannerHome = tool name: 'sonar_scanner_dotnet', type: 'hudson.plugins.sonar.MsBuildSQRunnerInstallation'
-		port = "${env.BRANCH_NAME == "master" ? 6000 : 6100}"
+		dockerPort = "${env.BRANCH_NAME == "master" ? 6000 : 6100}"
+		kubernetesPort = "${env.BRANCH_NAME == "master" ? 30157 : 30158}"
 		project = "NAGP"
+		dtr = "jinjinesh"
 	}
 	options {
 	  buildDiscarder logRotator(daysToKeepStr: '10', numToKeepStr: '5')
@@ -55,14 +57,14 @@ pipeline {
 		}
 		stage('Docker image') {
 			steps {
-				bat "docker build -t jinjinesh/i_jineshjain_${env.branch_name}:${BUILD_NUMBER} --no-cache -f WebApplication4/DockerFile ."
+				bat "docker build -t ${dtr}/i_jineshjain_${env.branch_name}:${BUILD_NUMBER} --no-cache -f WebApplication4/DockerFile ."
 			}
 		}
 		stage('Containers') {
 			parallel {
 				stage ('PushtoDTR') {
 					steps {
-						echo "docker push i_jineshjain_${env.branch_name}:${BUILD_NUMBER}"
+						bat "docker push ${dtr}/i_jineshjain_${env.branch_name}:${BUILD_NUMBER}"
 					}
 				}
 				stage ('PreContainerCheck') {
@@ -79,9 +81,19 @@ pipeline {
 		}
 		stage ('Docker deployment') {
 			steps {
-				bat "docker run -d -p ${port}:80 --name c_jineshjain_${env.branch_name} jinjinesh/i_jineshjain_${env.branch_name}:${BUILD_NUMBER}"
+				bat "docker run -d -p ${dockerPort}:80 --name c_jineshjain_${env.branch_name} ${dtr}/i_jineshjain_${env.branch_name}:${BUILD_NUMBER}"
 			}
 		}
-		
+		stage ('Helm Chart Deployment') {
+			steps {
+				powershell label: '', script: '''
+					$ns = $(kubectl get namespaces | findstr jineshjain-${env:branch_name});
+					if(!$ns) {
+						kubectl create namespace jineshjain-${env:branch_name};
+					}
+				'''
+				bat "helm upgrade --install web-app-jineshjain-${env.branch_name} helm-chart --set nodePort=${kubernetesPort} --set namespace=jineshjain-${env:branch_name} --set image=${dtr}/i_jineshjain_${env.branch_name}:${BUILD_NUMBER} --set name=web-app-${env.branch_name}"
+			}
+		}
 	}
 }

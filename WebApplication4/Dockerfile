@@ -1,4 +1,5 @@
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim
+MAINTAINER Jinesh Jain
 WORKDIR /app
 COPY app/publish .
 ENTRYPOINT ["dotnet", "WebApplication4.dll"]
