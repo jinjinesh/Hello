@@ -70,11 +70,15 @@ pipeline {
 				stage ('PreContainerCheck') {
 					steps {
 						powershell label: '', script: '''
-						$cID = $(docker ps -qf "name=c_jineshjain_${env:branch_name}");
-						if($cID){
-							docker container stop $cID;
-							docker rm $cID;
-						}'''
+						$containerRecord = docker ps | Select-String ${env:dockerPort};
+						if($containerRecord) {
+    						$containerId = $containerRecord.ToString().Split(" ")[0];
+    						if($containerId) {
+								docker container stop $containerId;
+								docker rm $containerId;
+							}
+						}
+						'''
 					}
 				}
 			}
